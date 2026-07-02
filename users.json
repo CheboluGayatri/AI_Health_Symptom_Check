@@ -1,0 +1,20 @@
+[
+  {
+    "username": "tulasi",
+    "email": "tulasi@gmail.com",
+    "password": "password123",
+    "role": "User"
+  },
+  {
+    "username": "Gayathri C",
+    "email": "gayathrichebolu6@gmail.com",
+    "password": "password123",
+    "role": "Admin"
+  },
+  {
+    "username": "abc",
+    "email": "abc@gmail.com",
+    "password": "1234",
+    "role": "User"
+  }
+]

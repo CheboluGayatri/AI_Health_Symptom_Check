@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="en" class="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Health Symptom Checker - Dashboard</title>
+    <!-- Tailwind CSS Play CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Lucide Icons CDN -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        clinical: {
+                            50: '#ecfdf5',
+                            100: '#d1fae5',
+                            500: '#10b981',
+                            600: '#059669',
+                            700: '#047857',
+                            900: '#064e3b',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body class="bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 min-h-screen transition-colors duration-300 pb-16">
+
+    <!-- TOP NAVIGATION BAR -->
+    <nav class="sticky top-0 z-50 bg-white/85 dark:bg-slate-900/85 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 transition-colors">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+            <div class="flex items-center gap-2.5">
+                <div class="p-2 rounded-xl bg-clinical-50 dark:bg-clinical-950/30 text-clinical-500">
+                    <i data-lucide="activity" class="w-5 h-5"></i>
+                </div>
+                <span class="font-bold text-lg text-slate-900 dark:text-white tracking-tight">AI Health Suite</span>
+            </div>
+
+            <div class="flex items-center gap-4">
+                <a href="/dashboard" class="text-sm font-semibold text-clinical-500 flex items-center gap-1.5 px-3 py-2 rounded-lg bg-clinical-50 dark:bg-clinical-950/30">
+                    <i data-lucide="layout-dashboard" class="w-4 h-4"></i>
+                    <span class="hidden sm:inline">Dashboard</span>
+                </a>
+                <a href="/chatbot" class="text-sm font-medium text-slate-600 dark:text-slate-300 hover:text-clinical-500 dark:hover:text-clinical-500 flex items-center gap-1.5 px-3 py-2 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800/50">
+                    <i data-lucide="bot" class="w-4 h-4"></i>
+                    <span class="hidden sm:inline">AI Chatbot</span>
+                </a>
+                
+                <!-- Theme toggle -->
+                <button id="themeToggle" class="p-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700 transition-all cursor-pointer">
+                    <i data-lucide="sun" class="w-4.5 h-4.5 text-amber-500 block dark:hidden"></i>
+                    <i data-lucide="moon" class="w-4.5 h-4.5 text-indigo-400 hidden dark:block"></i>
+                </button>
+
+                <!-- Profile indicator and logout -->
+                <div class="flex items-center gap-3 pl-3 border-l border-slate-200 dark:border-slate-700">
+                    <div class="text-right hidden md:block">
+                        <div class="text-sm font-semibold text-slate-800 dark:text-slate-100">{{ user.username }}</div>
+                        <div class="text-xs text-slate-400">{{ user.email }}</div>
+                    </div>
+                    <a href="/logout" class="p-2 rounded-xl hover:bg-rose-50 dark:hover:bg-rose-950/20 text-slate-400 hover:text-rose-500 transition-all cursor-pointer" title="Log Out">
+                        <i data-lucide="log-out" class="w-4.5 h-4.5"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- MAIN GRID CONTAINER -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-8">
+        
+        <!-- HERO WELCOME BANNER -->
+        <div class="bg-gradient-to-r from-slate-900 via-slate-850 to-clinical-900 text-white rounded-3xl p-6 sm:p-8 relative overflow-hidden mb-8 shadow-xl">
+            <div class="absolute top-0 right-0 w-64 h-64 bg-clinical-500/20 rounded-full blur-3xl -mr-16 -mt-16"></div>
+            <div class="relative z-10 max-w-2xl">
+                <span class="inline-flex px-3 py-1 rounded-full bg-clinical-500/20 border border-clinical-500/30 text-clinical-400 text-xs font-semibold mb-3">Pre-Clinical Assessment v1.0</span>
+                <h2 class="text-2xl sm:text-3xl font-bold tracking-tight mb-2">Hello, {{ user.username }}</h2>
+                <p class="text-slate-300 text-sm sm:text-base leading-relaxed">
+                    Identify medical health conditions by selecting your current symptoms. Our custom-trained Random Forest ML classifier processes interactions in real-time.
+                </p>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            
+            <!-- LEFT COLUMN: SYMPTOM DIAGNOSIS PANEL (2 COLS LARGE SCREENS) -->
+            <div class="lg:col-span-2 space-y-8">
+                
+                <!-- DIAGNOSTIC CARD -->
+                <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-sm relative">
+                    
+                    <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-4 mb-6">
+                        <div class="flex items-center gap-2">
+                            <i data-lucide="search" class="w-5 h-5 text-clinical-500"></i>
+                            <h3 class="font-bold text-slate-900 dark:text-white text-lg">Select Your Symptoms</h3>
+                        </div>
+                        
+                        <!-- Voice search button -->
+                        <button id="voiceBtn" class="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg bg-clinical-50 dark:bg-clinical-950/30 hover:bg-clinical-100 dark:hover:bg-clinical-900/40 text-clinical-500 cursor-pointer transition-all border border-clinical-200/50 dark:border-clinical-800/30">
+                            <i data-lucide="mic" class="w-4 h-4" id="micIcon"></i>
+                            <span id="voiceBtnText">Voice Dictation</span>
+                        </button>
+                    </div>
+
+                    <!-- Search / autocomplete input -->
+                    <div class="mb-6 relative">
+                        <input type="text" id="symptomSearch" placeholder="Filter symptoms (e.g. fever, rash, itching)..." class="w-full px-4 py-2.5 pl-10 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 text-sm focus:outline-none focus:ring-2 focus:ring-clinical-500 transition-all">
+                        <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-400 pointer-events-none">
+                            <i data-lucide="filter" class="w-4 h-4"></i>
+                        </span>
+                    </div>
+
+                    <!-- Voice visualizer text -->
+                    <div id="voiceStatus" class="hidden mb-4 p-3 rounded-xl bg-clinical-50 dark:bg-clinical-950/30 border border-clinical-200/50 dark:border-clinical-800/30 text-xs text-clinical-600 dark:text-clinical-400 animate-pulse flex items-center gap-2">
+                        <span class="flex h-2 w-2 relative">
+                            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-clinical-400 opacity-75"></span>
+                            <span class="relative inline-flex rounded-full h-2 w-2 bg-clinical-500"></span>
+                        </span>
+                        <span id="voiceStatusText">Listening... Speak your symptoms clearly.</span>
+                    </div>
+
+                    <!-- List of symptom checkboxes in a beautiful bento flow -->
+                    <div class="max-h-80 overflow-y-auto border border-slate-150 dark:border-slate-800/80 rounded-2xl p-4 bg-slate-50/50 dark:bg-slate-950/20">
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3" id="symptomsGrid">
+                            {% for symptom in symptoms %}
+                                <label class="flex items-center gap-2.5 p-3 rounded-xl bg-white dark:bg-slate-900 hover:bg-clinical-50/50 dark:hover:bg-clinical-950/20 border border-slate-200 dark:border-slate-800 hover:border-clinical-200 dark:hover:border-clinical-900 cursor-pointer transition-all relative select-none">
+                                    <input type="checkbox" name="symptoms" value="{{ symptom.lower() }}" class="rounded text-clinical-500 focus:ring-clinical-500 h-4 w-4 border-slate-300 dark:border-slate-700 dark:bg-slate-950 transition-all cursor-pointer symptom-checkbox">
+                                    <span class="text-sm font-medium text-slate-700 dark:text-slate-200 symptom-label">{{ symptom }}</span>
+                                </label>
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                    <!-- Selected Symptoms Badge Summary -->
+                    <div class="mt-4 flex flex-wrap gap-2" id="selectedBadges">
+                        <!-- Badges dynamically appended -->
+                    </div>
+
+                    <div class="mt-6 pt-6 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
+                        <button id="clearBtn" class="px-4 py-2.5 text-sm font-semibold rounded-xl border border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-500 dark:text-slate-400 cursor-pointer transition-all">
+                            Clear Selections
+                        </button>
+                        <button id="predictBtn" class="px-6 py-2.5 text-sm font-bold rounded-xl bg-clinical-500 hover:bg-clinical-600 active:scale-[0.98] text-white shadow-lg shadow-clinical-500/20 cursor-pointer transition-all flex items-center gap-2">
+                            <span>Analyze Symptoms</span>
+                            <i data-lucide="activity" class="w-4 h-4"></i>
+                        </button>
+                    </div>
+
+                </div>
+
+                <!-- DIAGNOSTIC RESULTS SECTION (HIDDEN BY DEFAULT) -->
+                <div id="resultsCard" class="hidden bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-md transition-all">
+                    
+                    <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-4 mb-6">
+                        <div class="flex items-center gap-2">
+                            <i data-lucide="heart" class="w-5 h-5 text-rose-500"></i>
+                            <h3 class="font-bold text-slate-900 dark:text-white text-lg">Machine Learning Predictions</h3>
+                        </div>
+                        <a href="#" id="pdfDownloadLink" class="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg bg-clinical-500 hover:bg-clinical-600 text-white cursor-pointer shadow-sm transition-all">
+                            <i data-lucide="download" class="w-4 h-4"></i>
+                            <span>Download PDF Report</span>
+                        </a>
+                    </div>
+
+                    <!-- PRIMARY PROGNOSIS CARD -->
+                    <div class="bg-gradient-to-r from-clinical-50/50 to-blue-50/30 dark:from-clinical-950/20 dark:to-blue-950/10 border border-clinical-100 dark:border-clinical-900/40 rounded-2xl p-5 mb-6">
+                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                            <div>
+                                <span class="text-xs font-semibold uppercase tracking-wider text-clinical-500 dark:text-clinical-400">Primary Diagnosis Matching</span>
+                                <h4 class="text-2xl font-bold text-slate-900 dark:text-white mt-1" id="topDisease">Fungal Infection</h4>
+                            </div>
+                            <div class="bg-white dark:bg-slate-900 p-3 rounded-2xl border border-clinical-100 dark:border-clinical-900 shadow-sm text-center min-w-[120px]">
+                                <span class="text-xs text-slate-400 block font-medium">Confidence Match</span>
+                                <span class="text-xl font-black text-clinical-500 mt-0.5 block" id="topConfidence">92.5%</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- GRID FOR DIFFERENTIAL MATCHES & GRAPHICS -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        
+                        <!-- Differential List -->
+                        <div class="space-y-4">
+                            <h5 class="text-sm font-bold text-slate-800 dark:text-slate-200">Differential Diagnoses (Top 3 Matches)</h5>
+                            <div class="space-y-3" id="differentialList">
+                                <!-- Appended dynamically -->
+                            </div>
+                        </div>
+
+                        <!-- Graphical Charts Container -->
+                        <div class="space-y-4">
+                            <h5 class="text-sm font-bold text-slate-800 dark:text-slate-200">Visual Probability Profiles</h5>
+                            <div class="grid grid-cols-2 gap-3" id="chartsContainer">
+                                <div class="border border-slate-150 dark:border-slate-800/80 rounded-xl p-2 bg-slate-50/50 dark:bg-slate-950/20 text-center">
+                                    <span class="text-xs text-slate-400 block mb-1">Probability Allocation</span>
+                                    <img src="/static/charts/probability_pie.png" id="pieChartImg" alt="Probability Allocation" class="w-full h-auto object-contain rounded-lg shadow-sm border border-slate-100 dark:border-slate-800">
+                                </div>
+                                <div class="border border-slate-150 dark:border-slate-800/80 rounded-xl p-2 bg-slate-50/50 dark:bg-slate-950/20 text-center">
+                                    <span class="text-xs text-slate-400 block mb-1">Confidence Comparison</span>
+                                    <img src="/static/charts/confidence_bar.png" id="barChartImg" alt="Confidence Comparison" class="w-full h-auto object-contain rounded-lg shadow-sm border border-slate-100 dark:border-slate-800">
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <!-- RECOMMENDATIONS ACCORDION -->
+                    <div class="mt-8 pt-6 border-t border-slate-100 dark:border-slate-800 space-y-4">
+                        <h5 class="text-sm font-bold text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
+                            <i data-lucide="shield-check" class="w-4.5 h-4.5 text-clinical-500"></i>
+                            <span>Clinical Recommendations & Supportive Care</span>
+                        </h5>
+
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div class="p-4 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-150 dark:border-slate-800">
+                                <span class="text-xs font-semibold text-clinical-600 dark:text-clinical-400 uppercase tracking-wider block mb-2">Daily Precautions</span>
+                                <ul class="text-sm text-slate-600 dark:text-slate-300 space-y-1.5 list-disc list-inside" id="recsPrecautions">
+                                    <!-- List items -->
+                                </ul>
+                            </div>
+                            <div class="p-4 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-150 dark:border-slate-800">
+                                <span class="text-xs font-semibold text-clinical-600 dark:text-clinical-400 uppercase tracking-wider block mb-2">Suggested Supportive Medicines</span>
+                                <ul class="text-sm text-slate-600 dark:text-slate-300 space-y-1.5 list-disc list-inside" id="recsMedicines">
+                                    <!-- List items -->
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div class="p-4 rounded-2xl bg-amber-500/5 dark:bg-amber-500/5 border border-amber-500/20 text-amber-600 dark:text-amber-400 text-sm">
+                            <div class="flex gap-2">
+                                <i data-lucide="stethoscope" class="w-5 h-5 shrink-0 mt-0.5"></i>
+                                <div>
+                                    <span class="font-bold block">Doctor Consultation Advisory:</span>
+                                    <span id="recsAdvice" class="leading-relaxed mt-1 block">Seek advice from a primary dermatologist.</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="p-4 rounded-2xl bg-slate-100 dark:bg-slate-900 text-slate-500 text-xs leading-relaxed italic border border-slate-200 dark:border-slate-850">
+                            <strong>Medical Disclaimer:</strong> Model prediction accuracy does not substitute clinical patient consultation. If experiencing acute pain or cardiac/pulmonary difficulties, seek immediate professional hospital emergency assistance.
+                        </div>
+
+                        <!-- Chatbot redirect card banner -->
+                        <div class="p-4 rounded-2xl bg-gradient-to-r from-clinical-500 to-emerald-600 text-white flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-md">
+                            <div>
+                                <h6 class="font-bold">Have Questions About This Prediction?</h6>
+                                <p class="text-xs text-clinical-100 mt-1">Talk with our pre-trained AI Health Chatbot assistant.</p>
+                            </div>
+                            <a href="/chatbot" id="chatRedirectBtn" class="px-4 py-2 bg-white text-clinical-600 font-bold text-xs rounded-xl hover:bg-clinical-50 shadow-sm active:scale-95 transition-all text-center">
+                                Consult AI Chatbot
+                            </a>
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+            <!-- RIGHT COLUMN: PATIENT DIAGNOSTIC HISTORY LOG -->
+            <div class="space-y-8">
+                
+                <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-sm">
+                    <div class="flex items-center gap-2 border-b border-slate-100 dark:border-slate-800 pb-4 mb-4">
+                        <i data-lucide="history" class="w-5 h-5 text-clinical-500"></i>
+                        <h3 class="font-bold text-slate-900 dark:text-white text-lg">Diagnostic Logs</h3>
+                    </div>
+
+                    <div class="space-y-3 max-h-[500px] overflow-y-auto" id="historyList">
+                        {% if history %}
+                            {% for log in history %}
+                                <div class="p-4 rounded-2xl border border-slate-150 dark:border-slate-800/80 bg-slate-50/50 dark:bg-slate-950/20 hover:bg-clinical-50/10 dark:hover:bg-clinical-950/5 transition-all">
+                                    <div class="flex items-center justify-between gap-2">
+                                        <span class="text-sm font-bold text-slate-900 dark:text-white">{{ log.predicted_disease }}</span>
+                                        <span class="text-xs font-semibold px-2 py-0.5 rounded-full bg-clinical-50 dark:bg-clinical-950/40 text-clinical-500 border border-clinical-100 dark:border-clinical-900/30">{{ log.confidence }}%</span>
+                                    </div>
+                                    <div class="text-xs text-slate-400 mt-1 truncate">Symptoms: {{ log.symptoms }}</div>
+                                    <div class="mt-3 flex items-center justify-between gap-2 text-xs">
+                                        <span class="text-slate-400">{{ log.created_at[:16] }}</span>
+                                        <a href="/report/{{ log.id }}" class="text-clinical-500 hover:underline font-semibold flex items-center gap-0.5">
+                                            <span>View Report</span>
+                                            <i data-lucide="chevron-right" class="w-3 h-3"></i>
+                                        </a>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        {% else %}
+                            <div class="text-center py-8 text-slate-400" id="noHistoryText">
+                                <i data-lucide="database" class="w-8 h-8 mx-auto mb-2 text-slate-300 dark:text-slate-700"></i>
+                                <span class="text-sm">No historic diagnostic logs recorded yet.</span>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- HEALTH TIPS PANEL -->
+                <div class="bg-gradient-to-br from-clinical-50/50 to-emerald-50/30 dark:from-clinical-950/10 dark:to-emerald-950/5 border border-clinical-100 dark:border-clinical-900/40 rounded-3xl p-6">
+                    <div class="flex items-center gap-2 mb-4 text-clinical-600 dark:text-clinical-400">
+                        <i data-lucide="sparkles" class="w-5 h-5"></i>
+                        <h4 class="font-bold text-sm uppercase tracking-wider">Clinical Health Tip of the Day</h4>
+                    </div>
+                    <p class="text-sm text-slate-600 dark:text-slate-300 leading-relaxed italic">
+                        "Adequate high-quality sleep (7-8 hours) is vital to optimizing your immune system response curves. Staying hydrated consistently helps flush out toxic cellular elements."
+                    </p>
+                </div>
+
+            </div>
+
+        </div>
+
+    </main>
+
+    <!-- LOADING SCREEN MODAL -->
+    <div id="loadingModal" class="fixed inset-0 bg-slate-950/50 backdrop-blur-sm z-50 flex items-center justify-center hidden">
+        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-850 p-6 rounded-3xl shadow-2xl text-center max-w-xs w-full">
+            <div class="relative w-16 h-16 mx-auto mb-4 flex items-center justify-center">
+                <span class="absolute h-12 w-12 rounded-full border-4 border-clinical-500/20 border-t-clinical-500 animate-spin"></span>
+                <i data-lucide="activity" class="w-6 h-6 text-clinical-500 animate-pulse"></i>
+            </div>
+            <h5 class="font-bold text-slate-900 dark:text-white">Analyzing Symptoms</h5>
+            <p class="text-xs text-slate-400 mt-1">Evaluating weights using Random Forest Classifier...</p>
+        </div>
+    </div>
+
+    <!-- TOAST NOTIFICATIONS CONTAINER -->
+    <div id="toastContainer" class="fixed bottom-5 right-5 z-50 space-y-2"></div>
+
+    <script>
+        lucide.createIcons();
+    </script>
+    <script src="/static/js/theme.js"></script>
+    <script src="/static/js/script.js"></script>
+    <script src="/static/js/voice.js"></script>
+</body>
+</html>

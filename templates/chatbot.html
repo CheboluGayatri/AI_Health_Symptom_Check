@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en" class="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Health Symptom Checker - AI Chatbot</title>
+    <!-- Tailwind CSS Play CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Lucide Icons CDN -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        clinical: {
+                            50: '#ecfdf5',
+                            100: '#d1fae5',
+                            500: '#10b981',
+                            600: '#059669',
+                            700: '#047857',
+                            900: '#064e3b',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body class="bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 min-h-screen transition-colors duration-300 flex flex-col pb-6">
+
+    <!-- TOP NAVIGATION BAR -->
+    <nav class="sticky top-0 z-50 bg-white/85 dark:bg-slate-900/85 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 transition-colors shrink-0">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+            <div class="flex items-center gap-2.5">
+                <div class="p-2 rounded-xl bg-clinical-50 dark:bg-clinical-950/30 text-clinical-500">
+                    <i data-lucide="activity" class="w-5 h-5"></i>
+                </div>
+                <span class="font-bold text-lg text-slate-900 dark:text-white tracking-tight">AI Health Suite</span>
+            </div>
+
+            <div class="flex items-center gap-4">
+                <a href="/dashboard" class="text-sm font-medium text-slate-600 dark:text-slate-300 hover:text-clinical-500 dark:hover:text-clinical-500 flex items-center gap-1.5 px-3 py-2 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800/50">
+                    <i data-lucide="layout-dashboard" class="w-4 h-4"></i>
+                    <span class="hidden sm:inline">Dashboard</span>
+                </a>
+                <a href="/chatbot" class="text-sm font-semibold text-clinical-500 flex items-center gap-1.5 px-3 py-2 rounded-lg bg-clinical-50 dark:bg-clinical-950/30">
+                    <i data-lucide="bot" class="w-4 h-4"></i>
+                    <span class="hidden sm:inline">AI Chatbot</span>
+                </a>
+                
+                <!-- Theme toggle -->
+                <button id="themeToggle" class="p-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700 transition-all cursor-pointer">
+                    <i data-lucide="sun" class="w-4.5 h-4.5 text-amber-500 block dark:hidden"></i>
+                    <i data-lucide="moon" class="w-4.5 h-4.5 text-indigo-400 hidden dark:block"></i>
+                </button>
+
+                <!-- Profile indicator and logout -->
+                <div class="flex items-center gap-3 pl-3 border-l border-slate-200 dark:border-slate-700">
+                    <div class="text-right hidden md:block">
+                        <div class="text-sm font-semibold text-slate-800 dark:text-slate-100">{{ user.username }}</div>
+                        <div class="text-xs text-slate-400">{{ user.email }}</div>
+                    </div>
+                    <a href="/logout" class="p-2 rounded-xl hover:bg-rose-50 dark:hover:bg-rose-950/20 text-slate-400 hover:text-rose-500 transition-all cursor-pointer" title="Log Out">
+                        <i data-lucide="log-out" class="w-4.5 h-4.5"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- MAIN CONVERSATION FRAME -->
+    <main class="max-w-4xl w-full mx-auto px-4 mt-6 flex-1 flex flex-col min-h-0">
+        
+        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl shadow-sm flex flex-col flex-1 min-h-0 overflow-hidden relative">
+            
+            <!-- Chatbot Header -->
+            <div class="px-6 py-4 border-b border-slate-150 dark:border-slate-800 flex items-center justify-between bg-slate-50/50 dark:bg-slate-950/10">
+                <div class="flex items-center gap-3">
+                    <div class="p-2.5 rounded-2xl bg-clinical-500/10 text-clinical-500">
+                        <i data-lucide="bot" class="w-6 h-6 animate-bounce"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-slate-900 dark:text-white text-base">AI Clinical Assistant</h3>
+                        <span class="text-xs text-clinical-500 flex items-center gap-1">
+                            <span class="h-1.5 w-1.5 rounded-full bg-clinical-500 animate-pulse"></span>
+                            <span>Online. Discuss predictions and care.</span>
+                        </span>
+                    </div>
+                </div>
+                
+                <!-- Quick Disclaimer Button -->
+                <span class="text-xs text-slate-400 bg-slate-100 dark:bg-slate-850 px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-800 font-medium">
+                    Pre-Clinical Advisory Only
+                </span>
+            </div>
+
+            <!-- CHATBUBBLES CONTAINER -->
+            <div id="chatContainer" class="p-6 overflow-y-auto flex-1 space-y-4 max-h-[55vh]">
+                
+                <!-- Bot Intro Message -->
+                <div class="flex items-start gap-3.5 max-w-2xl">
+                    <div class="w-9 h-9 shrink-0 rounded-xl bg-clinical-500/10 text-clinical-500 flex items-center justify-center border border-clinical-200/40">
+                        <i data-lucide="bot" class="w-5 h-5"></i>
+                    </div>
+                    <div class="p-4 rounded-3xl bg-slate-50 dark:bg-slate-950 border border-slate-150 dark:border-slate-850/80 text-sm leading-relaxed text-slate-700 dark:text-slate-200 shadow-sm relative">
+                        <p class="font-semibold text-clinical-500 mb-1">Hello, I'm your AI Health Assistant!</p>
+                        <p>I can help answer questions regarding your predicted disease diagnosis, matching symptoms, preventative precautions, supportive medicines, or other pre-clinical advice.</p>
+                        <p class="mt-2 text-xs text-slate-400 italic font-medium">Note: Questions unrelated to health or your diagnosed state will be filtered out to protect medical integrity.</p>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- CHAT INPUT CONTROLS -->
+            <div class="p-4 border-t border-slate-150 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-950/10 relative">
+                
+                <!-- Loading indicator -->
+                <div id="typingIndicator" class="hidden absolute top-0 -translate-y-full left-6 py-2 px-3 rounded-t-xl border-t border-x border-slate-150 dark:border-slate-800 bg-white dark:bg-slate-900 text-xs text-slate-400 flex items-center gap-1.5 shadow-sm">
+                    <span class="flex h-1.5 w-1.5 relative">
+                        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-clinical-400 opacity-75"></span>
+                        <span class="relative inline-flex rounded-full h-1.5 w-1.5 bg-clinical-500"></span>
+                    </span>
+                    <span>AI assistant is typing...</span>
+                </div>
+
+                <form id="chatForm" class="flex gap-3">
+                    <input type="text" id="chatInput" autocomplete="off" placeholder="Ask a question about your health or predicted condition..." class="w-full px-4 py-3 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 focus:outline-none focus:ring-2 focus:ring-clinical-500 transition-all text-sm shadow-inner">
+                    <button type="submit" class="p-3 rounded-2xl bg-clinical-500 hover:bg-clinical-600 active:scale-95 text-white shadow-lg shadow-clinical-500/20 cursor-pointer transition-all flex items-center justify-center min-w-[50px]">
+                        <i data-lucide="send" class="w-5 h-5"></i>
+                    </button>
+                </form>
+            </div>
+
+        </div>
+
+        <p class="text-center text-xs text-slate-400 mt-4 leading-relaxed max-w-lg mx-auto italic">
+            "I am an AI Health Assistant and can answer only health-related questions. Direct all urgent emergencies to local clinical treatment facilities."
+        </p>
+
+    </main>
+
+    <script>
+        lucide.createIcons();
+    </script>
+    <script src="/static/js/theme.js"></script>
+    
+    <!-- Inline Chat JS for direct page reactivity -->
+    <script>
+        const chatForm = document.getElementById('chatForm');
+        const chatInput = document.getElementById('chatInput');
+        const chatContainer = document.getElementById('chatContainer');
+        const typingIndicator = document.getElementById('typingIndicator');
+
+        // Retreive last prediction from LocalStorage if active in the session
+        const lastPrediction = JSON.parse(localStorage.getItem('lastPrediction') || 'null');
+        const activeDiseaseContext = lastPrediction ? lastPrediction.disease : null;
+
+        function appendMessage(sender, text, isAI = false) {
+            const wrapper = document.createElement('div');
+            wrapper.className = `flex items-start gap-3.5 max-w-2xl ${isAI ? '' : 'ml-auto flex-row-reverse'}`;
+
+            const iconClass = isAI ? 'bg-clinical-500/10 text-clinical-500' : 'bg-slate-100 dark:bg-slate-800 text-slate-500';
+            const iconName = isAI ? 'bot' : 'user';
+
+            const bubbleClass = isAI 
+                ? 'bg-slate-50 dark:bg-slate-950 border border-slate-150 dark:border-slate-850' 
+                : 'bg-clinical-500 text-white shadow-md';
+
+            wrapper.innerHTML = `
+                <div class="w-9 h-9 shrink-0 rounded-xl flex items-center justify-center border border-slate-200/10 ${iconClass}">
+                    <i data-lucide="${iconName}" class="w-5 h-5"></i>
+                </div>
+                <div class="p-4 rounded-3xl text-sm leading-relaxed shadow-sm relative ${bubbleClass}">
+                    <p class="whitespace-pre-line">${text}</p>
+                </div>
+            `;
+
+            chatContainer.appendChild(wrapper);
+            lucide.createIcons();
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+        }
+
+        chatForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const message = chatInput.value.trim();
+            if (!message) return;
+
+            chatInput.value = '';
+            appendMessage('You', message, false);
+
+            // Display typing indicator
+            typingIndicator.classList.remove('hidden');
+
+            try {
+                const res = await fetch('/api/chat', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        message: message,
+                        disease_context: activeDiseaseContext
+                    })
+                });
+                
+                const data = await res.get_json() || {};
+                typingIndicator.classList.add('hidden');
+
+                if (data.error) {
+                    appendMessage('AI', `An error occurred: ${data.error}`, true);
+                } else {
+                    appendMessage('AI', data.reply, true);
+                }
+            } catch (err) {
+                typingIndicator.classList.add('hidden');
+                appendMessage('AI', "I am an AI Health Assistant and can answer only health-related questions. (Connection failed)", true);
+            }
+        });
+    </script>
+</body>
+</html>

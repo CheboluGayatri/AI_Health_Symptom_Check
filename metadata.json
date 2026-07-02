@@ -1,0 +1,6 @@
+{
+  "name": "AI Health Symptom Checker",
+  "description": "An AI-powered pre-clinical health symptom checker using a custom-trained machine learning model to predict diseases, view differential matching statistics, consult an AI assistant, and export reports.",
+  "requestFramePermissions": ["microphone"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
